@@ -3,13 +3,17 @@ import pygame
 import random
 
 class Bird:
-    def __init__(self):
+    def __init__(self, isHuman):
         self.xPos = 120
         self.yPos = 300
         self.yVel = 0
         self.gravity = .06
         self.angle = 0
-        path = "assets/sprites/yellowbird-midflap.png"
+        self.isHuman = isHuman
+        if isHuman:
+            path = "assets/sprites/yellowbird-midflap.png"
+        else:
+            path = "assets/sprites/bluebird-midflap.png"
         self.image = pygame.image.load(path).convert()
         self.image = pygame.transform.scale(self.image, (68, 48))
         self.imageRect = self.image.get_rect()
@@ -38,28 +42,40 @@ class Bird:
             self.afterFlapIter += 1
         
         if self.frame == 0 and not self.didAnimate:
-            path = "assets/sprites/yellowbird-midflap.png"
+            if self.isHuman:
+                path = "assets/sprites/yellowbird-midflap.png"
+            else:
+                path = "assets/sprites/bluebird-midflap.png"
             del self.image
             self.image = pygame.image.load(path).convert()
             self.image = pygame.transform.scale(self.image, (68, 48))
             self.frame = 1
             self.didAnimate = True
         if self.frame == 1 and not self.didAnimate:
-            path = "assets/sprites/yellowbird-downflap.png"
+            if self.isHuman:
+                path = "assets/sprites/yellowbird-downflap.png"
+            else:
+                path = "assets/sprites/bluebird-downflap.png"
             del self.image
             self.image = pygame.image.load(path).convert()
             self.image = pygame.transform.scale(self.image, (68, 48))
             self.frame = 2
             self.didAnimate = True
         if self.frame == 2 and not self.didAnimate:
-            path = "assets/sprites/yellowbird-midflap.png"
+            if self.isHuman:
+                path = "assets/sprites/yellowbird-midflap.png"
+            else:
+                path = "assets/sprites/bluebird-midflap.png"
             del self.image
             self.image = pygame.image.load(path).convert()
             self.image = pygame.transform.scale(self.image, (68, 48))
             self.frame = 3
             self.didAnimate = True
         if self.frame == 3 and not self.didAnimate:
-            path = "assets/sprites/yellowbird-upflap.png"
+            if self.isHuman:
+                path = "assets/sprites/yellowbird-upflap.png"
+            else:
+                path = "assets/sprites/bluebird-upflap.png"
             del self.image
             self.image = pygame.image.load(path).convert()
             self.image = pygame.transform.scale(self.image, (68, 48))
@@ -103,10 +119,11 @@ class Pipe:
         screen.blit(self.image, (self.xPos, self.yPos))
 
 class PipeManager:
-    def __init__(self):
+    def __init__(self, ySpace):
         pipeHeight = random.randint(280, 510)
         self.pipes = []
-        self.pipes.append(Pipe(pipeHeight, True, 200))
+        self.ySpace = ySpace
+        self.pipes.append(Pipe(pipeHeight, True, ySpace))
         self.pipes.append(Pipe(pipeHeight, False))
         self.placedPipe = False
     
@@ -116,7 +133,7 @@ class PipeManager:
             if not self.placedPipe:
                 self.placedPipe = True
                 pipeHeight = random.randint(280, 510)
-                self.pipes.append(Pipe(pipeHeight, True, 200))
+                self.pipes.append(Pipe(pipeHeight, True, self.ySpace))
                 self.pipes.append(Pipe(pipeHeight, False))
                 spawnedPipe = True
 
@@ -176,3 +193,28 @@ class Points:
     def render(self, screen):
         rendered_text = self.font.render(self.text, True, (0, 0, 0))
         screen.blit(rendered_text, (480 // 2 - rendered_text.get_width() // 2, 60))
+
+class Button:
+    def __init__(self, text, xPos, yPos):
+        self.font = pygame.font.Font(None, 36)
+        self.xPos = xPos
+        self.yPos = yPos
+        self.text = text
+        self.hitbox = 0
+        self.rendered_text = self.font.render(self.text, True, (255, 255, 255))
+    def isHovered(self):
+        a = self.xPos < pygame.mouse.get_pos()[0] < self.xPos + self.hitbox.w + 8
+        b = self.yPos < pygame.mouse.get_pos()[1] < self.yPos + self.hitbox.h + 8
+        if a and b:
+            return True
+        else:
+            return False
+    def render(self, screen):
+        self.hitbox = pygame.Rect(self.xPos, self.yPos, self.rendered_text.get_width() + 2, self.rendered_text.get_height() + 2)
+        if not self.isHovered():
+            self.rendered_text = self.font.render(self.text, True, (255, 255, 255))
+            pygame.draw.rect(screen, (0, 255, 0), pygame.Rect(self.xPos, self.yPos, self.rendered_text.get_width() + 8, self.rendered_text.get_height() + 8), 2)
+        else:
+            self.rendered_text = self.font.render(self.text, True, (0, 0, 0))
+            pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(self.xPos, self.yPos, self.rendered_text.get_width() + 8, self.rendered_text.get_height() + 8), 0)
+        screen.blit(self.rendered_text, (self.xPos + 4, self.yPos + 4))
