@@ -31,16 +31,31 @@ def convertGenes(gene):
             geneIndex += 1
     return (i2h, h2o)
 
+def relu(x):
+    return max(0, x)
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
 class ai:
     def __init__(self, gene):
         self.inputNeurons = [0, 0, 0, 0]
         self.hiddenNeurons = [0, 0, 0, 0]
-        self.outputNeurons = [0]
-        self.i2h_params = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-        self.h2o_params = [[0], [0], [0], [0]]
-    def calcOutput(inputs):
-        pass
-
+        self.outputNeurons = [0.0]
+        self.i2h_params = []
+        self.h2o_params = []
+        self.gene = gene
+        
+    def calcOutput(self, inputs):
+        a = convertGenes(self.gene)
+        self.i2h_params = a[0]
+        self.h2o_params = a[1]
+        self.inputNeurons = inputs
+        for i in range(len(self.hiddenNeurons)):
+            self.hiddenNeurons[i] = relu(self.i2h_params[0] * self.inputNeurons[0] + self.i2h_params[1] * self.inputNeurons[1] + self.i2h_params[2] * self.inputNeurons[2] + self.i2h_params[3] * self.inputNeurons[3])
+        self.outputNeurons[0] = sigmoid(self.h2o_params[0] * self.hiddenNeurons[0] + self.h2o_params[1] * self.hiddenNeurons[1] + self.h2o_params[2] * self.hiddenNeurons[2] + self.h2o_params[3] * self.hiddenNeurons[3])
+        
+        return self.outputNeurons[0]
 class instance:
     def __init__(self):
         self.bird = game.Bird(False)

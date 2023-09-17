@@ -32,8 +32,10 @@ class Game:
         self.highscore = a["highscore"]
         self.sessionHighscore = 0
         self.font = pygame.font.Font(None, 36)
-        self.modeButton = game.Button("Mode: Human", 500, 80)
-        self.modeButton.human = 1
+        if self.isHuman:
+            self.modeButton = game.Button("Mode: Human", 500, 80)
+        else:
+            self.modeButton = game.Button("Mode: AI", 500, 80)
         self.trainModeButton = game.Button("Training Mode: Off", 500, 120)
         self.trainMode = False
         self.hiSpeed = False
@@ -48,14 +50,12 @@ class Game:
                     self.running = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.modeButton.isHovered():
-                        if self.modeButton.human:
+                        if self.isHuman:
                             self.modeButton.text = "Mode: AI"
                             self.isHuman = 0
-                            self.modeButton.human = 0
                         else:
                             self.modeButton.text = "Mode: Human"
                             self.isHuman = 1
-                            self.modeButton.human = 1
                     if self.trainModeButton.isHovered():
                         if self.trainMode:
                             self.trainMode = False

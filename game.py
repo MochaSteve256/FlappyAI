@@ -200,7 +200,7 @@ class Button:
         self.xPos = xPos
         self.yPos = yPos
         self.text = text
-        self.hitbox = 0
+        self.hitbox = pygame.Rect(0, 0, 0, 0)
         self.rendered_text = self.font.render(self.text, True, (255, 255, 255))
     def isHovered(self):
         a = self.xPos < pygame.mouse.get_pos()[0] < self.xPos + self.hitbox.w + 8
