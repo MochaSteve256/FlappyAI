@@ -40,6 +40,7 @@ class Game:
         self.trainMode = False
         self.hiSpeed = False
         self.hiSpeedButton = game.Button("HiSpeed: Off", 680, 80)
+        self.aiManager = ai.instanceManager(100)
 
     def run(self):
         #main game loop
@@ -74,7 +75,7 @@ class Game:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_ESCAPE]:
                 self.running = False
-            
+
             if self.gaming:
                 #flap logic
                 if self.isHuman:
@@ -90,8 +91,8 @@ class Game:
                 
                 self.ground.update(1.2)
                 self.bg.update(.5)
-                pipeRects = self.pipeManager.update()
                 colliding = False
+                pipeRects = self.pipeManager.update()
                 for pipe in pipeRects[0]:
                     if birdRect.colliderect(pipe):
                         colliding = True
@@ -101,17 +102,20 @@ class Game:
             
                 if colliding:
                     self.gaming = False
-            
+                self.aiManager.update(pipeRects)
                 self.points.update(pipeRects[1])
+            
             else:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
                     del self.bird
                     del self.pipeManager
                     del self.points
+                    del self.aiManager
                     self.bird = game.Bird(self.isHuman)
                     self.pipeManager = game.PipeManager(self.ySpace)
                     self.points = game.Points()
+                    self.aiManager = ai.instanceManager(100)
                     self.gaming = True
             
             if self.highscore < self.points.points:
@@ -126,6 +130,8 @@ class Game:
                 self.bg.render(self.screen)
                 #pipes
                 self.pipeManager.render(self.screen)
+                #ai birds
+                self.aiManager.render(self.screen)
                 #bird
                 self.bird.render(self.screen)
                 #ground
@@ -142,7 +148,6 @@ class Game:
                 self.modeButton.render(self.screen)
                 self.hiSpeedButton.render(self.screen)
             self.trainModeButton.render(self.screen)
-            
             pygame.display.flip()
             if not self.hiSpeed:
                 self.clock.tick(200)
