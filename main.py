@@ -16,15 +16,15 @@ class Game:
         #load config file
         with open("options.json", "r") as f:
             a = json.load(f)
+        self.isHuman = a["nextStartupMode"]
         #initialize game elements
-        self.bird = game.Bird(True)
+        self.bird = game.Bird(self.isHuman)
         self.bg = game.Background()
         self.ground = game.Ground()
         self.ySpace = a["ySpace"]
         self.pipeManager = game.PipeManager(self.ySpace)
         self.points = game.Points()
         self.holdingJump = False
-        self.isHuman = a["nextStartupMode"]
         self.shouldFlap = False
         if not self.isHuman:
             with open("ai.json", "r") as g:
@@ -88,7 +88,7 @@ class Game:
                     birdRect = self.bird.update(False)
                 self.holdingJump = flap
                 
-                self.ground.update(1)
+                self.ground.update(1.2)
                 self.bg.update(.5)
                 pipeRects = self.pipeManager.update()
                 colliding = False
@@ -109,7 +109,7 @@ class Game:
                     del self.bird
                     del self.pipeManager
                     del self.points
-                    self.bird = game.Bird(True)
+                    self.bird = game.Bird(self.isHuman)
                     self.pipeManager = game.PipeManager(self.ySpace)
                     self.points = game.Points()
                     self.gaming = True

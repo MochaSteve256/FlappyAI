@@ -7,29 +7,31 @@ class Bird:
         self.xPos = 120
         self.yPos = 300
         self.yVel = 0
-        self.gravity = .06
+        self.gravity = 0.06
         self.angle = 0
         self.isHuman = isHuman
-        if isHuman:
-            path = "assets/sprites/yellowbird-midflap.png"
-        else:
-            path = "assets/sprites/bluebird-midflap.png"
-        self.image = pygame.image.load(path).convert()
-        self.image = pygame.transform.scale(self.image, (68, 48))
-        self.imageRect = self.image.get_rect()
+        self.frame = 0
+        self.anim_delay = 0
+        self.afterFlapIter = 0
+        self.load_bird_images()
+
+    def load_bird_images(self):
+        bird_colors = ["yellow" if self.isHuman else "blue"]
+        self.images = [
+            pygame.transform.scale(pygame.image.load(f"assets/sprites/{bird_colors[0]}bird-{flap}flap.png").convert(), (68, 48))
+            for flap in ["mid", "down", "mid", "up"]
+        ]
+        self.finalImage = self.images[self.frame]
+        self.imageRect = self.finalImage.get_rect()
         self.centerX = self.imageRect.centerx
         self.centerY = self.imageRect.centery
-        self.finalImage = self.image
         self.rotatedRect = self.imageRect
-        self.afterFlapIter = 0
-        self.frame = 1
-        self.didAnimate = False
-        self.animDelay = 0
-    
+
     def update(self, flap):
         if flap:
             self.yVel = -3.5
             self.angle = 30
+            self.anim_delay = 0
             self.afterFlapIter = 0
         else:
             self.yVel += self.gravity
@@ -40,64 +42,27 @@ class Bird:
             if self.angle < -90:
                 self.angle = -90
             self.afterFlapIter += 1
-        
-        if self.frame == 0 and not self.didAnimate:
-            if self.isHuman:
-                path = "assets/sprites/yellowbird-midflap.png"
-            else:
-                path = "assets/sprites/bluebird-midflap.png"
-            del self.image
-            self.image = pygame.image.load(path).convert()
-            self.image = pygame.transform.scale(self.image, (68, 48))
-            self.frame = 1
-            self.didAnimate = True
-        if self.frame == 1 and not self.didAnimate:
-            if self.isHuman:
-                path = "assets/sprites/yellowbird-downflap.png"
-            else:
-                path = "assets/sprites/bluebird-downflap.png"
-            del self.image
-            self.image = pygame.image.load(path).convert()
-            self.image = pygame.transform.scale(self.image, (68, 48))
-            self.frame = 2
-            self.didAnimate = True
-        if self.frame == 2 and not self.didAnimate:
-            if self.isHuman:
-                path = "assets/sprites/yellowbird-midflap.png"
-            else:
-                path = "assets/sprites/bluebird-midflap.png"
-            del self.image
-            self.image = pygame.image.load(path).convert()
-            self.image = pygame.transform.scale(self.image, (68, 48))
-            self.frame = 3
-            self.didAnimate = True
-        if self.frame == 3 and not self.didAnimate:
-            if self.isHuman:
-                path = "assets/sprites/yellowbird-upflap.png"
-            else:
-                path = "assets/sprites/bluebird-upflap.png"
-            del self.image
-            self.image = pygame.image.load(path).convert()
-            self.image = pygame.transform.scale(self.image, (68, 48))
-            self.frame = 0
-            self.didAnimate = True
-        
-        if self.animDelay > 15:
-            self.didAnimate = False
-            self.animDelay = 0
-        self.animDelay += 1
+
+        self.anim_delay += 1
+
+        if self.anim_delay > 15:
+            self.frame = (self.frame + 1) % len(self.images)
+            self.anim_delay = 0
+            
+        self.finalImage = pygame.transform.rotate(self.images[self.frame], self.angle).convert()
         
         if self.yPos < -60:
             self.yPos = -60
-        
-        self.finalImage = pygame.transform.rotate(self.image, self.angle).convert()
+
         self.rotatedRect = self.finalImage.get_rect()
         self.rotatedRect.center = (self.centerX + self.xPos, self.centerY + self.yPos)
         self.yPos += self.yVel
-        
+
         return pygame.Rect(self.xPos + 8, self.yPos + 8, 52, 36)
+
     def render(self, screen):
         screen.blit(self.finalImage, self.rotatedRect)
+
 
 class Pipe:
     def __init__(self, yPos, isTopPipe, ySpace = 200):
@@ -170,7 +135,7 @@ class Background:
 class Ground:
     def __init__(self):
         self.image = pygame.image.load("assets/sprites/base.png").convert()
-        self.image = pygame.transform.scale(self.image, (480, 160))
+        self.image = pygame.transform.scale(self.image, (481, 160))
         self.grounds = [0, 480]
     def update(self, xSpeed):
         for i in range(len(self.grounds)):
