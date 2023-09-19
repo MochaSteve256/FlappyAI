@@ -1,6 +1,7 @@
-import pygame
-import game
 import ai
+import game
+
+import pygame
 import json
 
 #main game class
@@ -20,8 +21,12 @@ class Game:
         #initialize game elements
         if self.isHuman:
             self.bird = game.Bird(True)
+            self.hiSpeed = False
+            self.autoRestart = False
         else:
-            self.aiManager = ai.instanceManager(100)
+            self.aiManager = ai.instanceManager(1000, True)
+            self.hiSpeed = True
+            self.autoRestart = True
         self.bg = game.Background()
         self.ground = game.Ground()
         self.ySpace = a["ySpace"]
@@ -41,11 +46,18 @@ class Game:
             self.modeButton = game.Button("Mode: AI", 500, 80)
         self.trainModeButton = game.Button("Training Mode: Off", 500, 120)
         self.trainMode = False
-        self.hiSpeed = False
-        self.hiSpeedButton = game.Button("HiSpeed: Off", 680, 80)
+        if self.isHuman:
+            self.hiSpeedButton = game.Button("HiSpeed: Off", 680, 80)
+            self.autoRestartButton = game.Button("AutoRestart: Off", 735, 120)
+        else:
+            self.hiSpeedButton = game.Button("HiSpeed: On", 680, 80)
+            self.autoRestartButton = game.Button("AutoRestart: On", 735, 120)
+        self.restarted = False
 
     def run(self):
         #main game loop
+        birdRect = pygame.Rect(0, 0, 0, 0)
+        self.restarted = True
         while self.running:
             #quit if user closes window
             for event in pygame.event.get():
@@ -59,6 +71,8 @@ class Game:
                         else:
                             self.modeButton.text = "Mode: Human"
                             self.isHuman = 1
+                        self.restarted = False
+                        self.gaming = False
                     if self.trainModeButton.isHovered():
                         if self.trainMode:
                             self.trainMode = False
@@ -73,11 +87,18 @@ class Game:
                         else:
                             self.hiSpeed = True
                             self.hiSpeedButton.text = "HiSpeed: On"
+                    if self.autoRestartButton.isHovered():
+                        if self.autoRestart:
+                            self.autoRestart = False
+                            self.autoRestartButton.text = "AutoRestart: Off"
+                        else:
+                            self.autoRestart = True
+                            self.autoRestartButton.text = "AutoRestart: On"
             
             keys = pygame.key.get_pressed()
             if keys[pygame.K_ESCAPE]:
                 self.running = False
-
+            
             if self.gaming:
                 #flap logic
                 if self.isHuman:
@@ -85,12 +106,14 @@ class Game:
                 else:
                     flap = self.shouldFlap
                 
-                if self.isHuman:
+                try:
                     if not self.holdingJump and flap:
                         birdRect = self.bird.update(True)
                     else:
                         birdRect = self.bird.update(False)
                     self.holdingJump = flap
+                except:
+                    pass
                 
                 self.ground.update(1.2)
                 self.bg.update(.5)
@@ -108,13 +131,14 @@ class Game:
                     if colliding:
                         self.gaming = False
                 else:
-                    if not self.aiManager.update(pipeRects):
-                        self.gaming = False
+                    if self.restarted:
+                        if not self.aiManager.update(pipeRects, self.sessionHighscore, self.points.points):
+                            self.gaming = False
                 self.points.update(pipeRects[1])
             
             else:
                 keys = pygame.key.get_pressed()
-                if keys[pygame.K_SPACE]:
+                if keys[pygame.K_SPACE] or self.autoRestart:
                     try:
                         del self.bird
                     except:
@@ -128,10 +152,11 @@ class Game:
                     if self.isHuman:
                         self.bird = game.Bird(self.isHuman)
                     else:
-                        self.aiManager = ai.instanceManager(100)
+                        self.aiManager = ai.instanceManager(100, True)
                     self.pipeManager = game.PipeManager(self.ySpace)
                     self.points = game.Points()
                     self.gaming = True
+                    self.restarted = True
             
             if self.highscore < self.points.points:
                 self.highscore = self.points.points
@@ -163,14 +188,16 @@ class Game:
                 #ai stuff and info
             pygame.draw.rect(self.screen, (0, 0, 0), (480, 0, 480, 640), 0)
             if not self.trainMode:
-                self.highscoreText = self.font.render(f"Session Highscore: {self.sessionHighscore}", True, (255, 255, 255))
+                self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}, AI Highscore: {self.aiManager.getAIHighscore()}", True, (255, 255, 255))
                 self.highscore2Text = self.font.render(f"Total Highscore: {self.highscore}", True, (255, 255, 255))
                 self.screen.blit(self.highscoreText, (500, 20))
                 self.screen.blit(self.highscore2Text, (500, 45))
                 self.modeButton.render(self.screen)
                 self.hiSpeedButton.render(self.screen)
+                self.autoRestartButton.render(self.screen)
             self.trainModeButton.render(self.screen)
-            pygame.display.flip()
+            if not self.trainMode:
+                pygame.display.flip()
             if not self.hiSpeed:
                 self.clock.tick(200)
         self.save(self.highscore, self.isHuman)
@@ -182,12 +209,8 @@ class Game:
                 "highscore": highscore, 
                 "nextStartupMode": nextStartupMode,
                 "ySpace": self.ySpace
-            }, f, indent=4)
-        '''
-        if not self.isHuman:
-            with open("ai.json", "w") as g:
-                json.dump({"best1": 1, "best2": 1}, g)
-        '''
+            },
+                    f, indent=4)
 
 if __name__ == "__main__":
     flappyBird = Game()

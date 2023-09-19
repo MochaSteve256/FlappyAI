@@ -178,8 +178,8 @@ class Button:
         self.hitbox = pygame.Rect(self.xPos, self.yPos, self.rendered_text.get_width() + 2, self.rendered_text.get_height() + 2)
         if not self.isHovered():
             self.rendered_text = self.font.render(self.text, True, (255, 255, 255))
-            pygame.draw.rect(screen, (0, 255, 0), pygame.Rect(self.xPos, self.yPos, self.rendered_text.get_width() + 8, self.rendered_text.get_height() + 8), 2)
+            pygame.draw.rect(screen, (0, 255, 0), pygame.Rect(self.xPos, self.yPos, self.rendered_text.get_width() + 8, 33), 2)
         else:
             self.rendered_text = self.font.render(self.text, True, (0, 0, 0))
-            pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(self.xPos, self.yPos, self.rendered_text.get_width() + 8, self.rendered_text.get_height() + 8), 0)
+            pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(self.xPos, self.yPos, self.rendered_text.get_width() + 8, 33), 0)
         screen.blit(self.rendered_text, (self.xPos + 4, self.yPos + 4))

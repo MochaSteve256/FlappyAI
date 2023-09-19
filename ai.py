@@ -1,8 +1,10 @@
 #AI implementation
-import math
 import game
-import random
+
 import pygame
+import math
+import random
+import json
 
 def mergeGenes(a, b):
     outcomes = [1, 2, 3]# 1 = gene a, 2 = gene b, 3 = mutation
@@ -34,7 +36,8 @@ def convertGenes(gene):
 
 def relu(x):
     #print(x)
-    return max(0, x)
+    x = max(-700, min(700, x))
+    return x / (1 + math.exp(-x))
 
 def sigmoid(x):
     x = max(-700, min(700, x))
@@ -43,8 +46,8 @@ def sigmoid(x):
 class ai:
     def __init__(self, gene):
         self.inputNeurons = [0, 0, 0, 0]
-        self.hiddenNeurons = [0, 0, 0, 0]
-        self.outputNeurons = [0.0]
+        self.hiddenNeurons = [.0, .0, .0, .0]
+        self.outputNeurons = [.0]
         self.i2h_params = []
         self.h2o_params = []
         self.gene = gene
@@ -56,7 +59,7 @@ class ai:
         self.inputNeurons = inputs
         for i in range(len(self.hiddenNeurons)):
             # Apply relu to individual elements, not the entire list
-            self.hiddenNeurons[i] = relu(
+            self.hiddenNeurons[i] = (
                 self.i2h_params[0][i] * self.inputNeurons[0] +
                 self.i2h_params[1][i] * self.inputNeurons[1] +
                 self.i2h_params[2][i] * self.inputNeurons[2] +
@@ -109,7 +112,7 @@ class instance:
         self.bird.render(screen)
 
 class instanceManager:
-    def __init__(self, instanceCount):
+    def __init__(self, instanceCount, loadGenesFromFile):
         self.instanceCount = instanceCount
         self.instances = []
         self.inputs = [0, 0, 0]
@@ -118,32 +121,62 @@ class instanceManager:
         self.topPipeYpos = 0
         self.bottomPipeYpos = 0
         self.nextPipesXdist = 0
-        #initial gene population
-        for i in range(self.instanceCount):
-            self.initialGenes.append([])
-            for j in range(20):
-                self.initialGenes[i].append(random.randint(-1000, 1000))
-            self.instances.append(instance(self.initialGenes[i]))
+        self.aiHighscore = json.load(open("ai.json", "r"))["aiHighscore"]
+        if not loadGenesFromFile:
+            #initial gene population
+            for i in range(self.instanceCount):
+                self.initialGenes.append([])
+                for j in range(20):
+                    self.initialGenes[i].append(random.randint(-1000, 1000))
+                self.instances.append(instance(self.initialGenes[i]))
+        else:
+            with open("ai.json", "r") as f:
+                self.bestGenes = json.load(f)
+            for i in range(self.instanceCount):
+                if len(self.bestGenes) >= 2:
+                    self.initialGenes.append(mergeGenes(self.bestGenes["bestInstanceA"], self.bestGenes["bestInstanceB"]))
+                elif len(self.bestGenes) == 1:
+                    self.initialGenes.append(mergeGenes(self.bestGenes["bestInstanceA"], self.bestGenes["bestInstanceA"]))
+                self.instances.append(instance(self.initialGenes[i]))
     def getInputs(self):
         self.topPipeYpos = self.pipeRects[0][len(self.pipeRects) - 2].h
         self.bottomPipeYpos = self.pipeRects[0][len(self.pipeRects) - 1].y
         self.nextPipesXdist = self.pipeRects[0][len(self.pipeRects) - 1].x - 120
     
-    def update(self, pipeRects):
+    def update(self, pipeRects, sessionHighscore, score):
         self.pipeRects = pipeRects
         self.getInputs()
         self.inputs = [self.topPipeYpos, self.bottomPipeYpos, self.nextPipesXdist]
         # Iterate over instances in reverse to safely remove them
         for i in range(len(self.instances) - 1, -1, -1):
             if not self.instances[i].update(self.inputs, pipeRects):
-                self.instances.pop(i)  # Remove the bird directly
-        if len(self.instances) > 0:
-            return True
-        else:
-            return False
+                if len(self.instances) > 2:
+                    self.instances.pop(i)  # Remove the bird directly
+                else:
+                    self.aiHighscore = json.load(open("ai.json", "r"))["aiHighscore"]
+                    if score >= self.aiHighscore:
+                        print("\033[92mTraining progressed, saving highscore\033[0m")
+                        bestInstances = {}
+                        try:
+                            bestInstances["bestInstanceA"] = self.instances[0].gene
+                            bestInstances["bestInstanceB"] = self.instances[1].gene
+                            bestInstances["aiHighscore"] = score
+                        except Exception as e:
+                            print("Too few instances, using first instance if even existing, or randomized genes")
+                        if len(bestInstances) == 0:
+                            bestInstances["bestInstanceA"] = [random.randint(-1000, 1000) for i in range(20)]
+                        with open("ai.json", "w") as f:
+                            json.dump(bestInstances, f, indent=4)
+                    else:
+                        print("Session Highscore not exceeded, not saving")
+                    return False
+        return True
     def render(self, screen):
         for instance in self.instances:
             instance.render(screen)
+        
+    def getAIHighscore(self):
+        return self.aiHighscore
 
 if __name__ == "__main__":
     a = mergeGenes([19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
