@@ -18,7 +18,10 @@ class Game:
             a = json.load(f)
         self.isHuman = a["nextStartupMode"]
         #initialize game elements
-        self.bird = game.Bird(self.isHuman)
+        if self.isHuman:
+            self.bird = game.Bird(True)
+        else:
+            self.aiManager = ai.instanceManager(100)
         self.bg = game.Background()
         self.ground = game.Ground()
         self.ySpace = a["ySpace"]
@@ -40,7 +43,6 @@ class Game:
         self.trainMode = False
         self.hiSpeed = False
         self.hiSpeedButton = game.Button("HiSpeed: Off", 680, 80)
-        self.aiManager = ai.instanceManager(100)
 
     def run(self):
         #main game loop
@@ -83,39 +85,52 @@ class Game:
                 else:
                     flap = self.shouldFlap
                 
-                if not self.holdingJump and flap:
-                    birdRect = self.bird.update(True)
-                else:
-                    birdRect = self.bird.update(False)
-                self.holdingJump = flap
+                if self.isHuman:
+                    if not self.holdingJump and flap:
+                        birdRect = self.bird.update(True)
+                    else:
+                        birdRect = self.bird.update(False)
+                    self.holdingJump = flap
                 
                 self.ground.update(1.2)
                 self.bg.update(.5)
                 colliding = False
                 pipeRects = self.pipeManager.update()
-                for pipe in pipeRects[0]:
-                    if birdRect.colliderect(pipe):
+                if self.isHuman:
+                    for pipe in pipeRects[0]:
+                        if birdRect.colliderect(pipe):
+                            colliding = True
+                            break
+                    if birdRect.colliderect(pygame.Rect(0, 640 -80, 480, 640)):
                         colliding = True
-                        break
-                if birdRect.colliderect(pygame.Rect(0, 640 -80, 480, 640)):
-                    colliding = True
             
-                if colliding:
-                    self.gaming = False
-                self.aiManager.update(pipeRects)
+                if self.isHuman:
+                    if colliding:
+                        self.gaming = False
+                else:
+                    if not self.aiManager.update(pipeRects):
+                        self.gaming = False
                 self.points.update(pipeRects[1])
             
             else:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
-                    del self.bird
+                    try:
+                        del self.bird
+                    except:
+                        pass
+                    try:
+                        del self.aiManager
+                    except:
+                        pass
                     del self.pipeManager
                     del self.points
-                    del self.aiManager
-                    self.bird = game.Bird(self.isHuman)
+                    if self.isHuman:
+                        self.bird = game.Bird(self.isHuman)
+                    else:
+                        self.aiManager = ai.instanceManager(100)
                     self.pipeManager = game.PipeManager(self.ySpace)
                     self.points = game.Points()
-                    self.aiManager = ai.instanceManager(100)
                     self.gaming = True
             
             if self.highscore < self.points.points:
@@ -130,10 +145,17 @@ class Game:
                 self.bg.render(self.screen)
                 #pipes
                 self.pipeManager.render(self.screen)
-                #ai birds
-                self.aiManager.render(self.screen)
-                #bird
-                self.bird.render(self.screen)
+                
+                try:
+                    #ai birds
+                    self.aiManager.render(self.screen)
+                except:
+                    pass
+                try:
+                    #bird
+                    self.bird.render(self.screen)
+                except:
+                    pass
                 #ground
                 self.ground.render(self.screen)
                 #points

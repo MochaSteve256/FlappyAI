@@ -137,6 +137,10 @@ class instanceManager:
         for i in range(len(self.instances) - 1, -1, -1):
             if not self.instances[i].update(self.inputs, pipeRects):
                 self.instances.pop(i)  # Remove the bird directly
+        if len(self.instances) > 0:
+            return True
+        else:
+            return False
     def render(self, screen):
         for instance in self.instances:
             instance.render(screen)
