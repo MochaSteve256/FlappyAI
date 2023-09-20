@@ -188,7 +188,10 @@ class Game:
                 #ai stuff and info
             pygame.draw.rect(self.screen, (0, 0, 0), (480, 0, 480, 640), 0)
             if not self.trainMode:
-                self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}, AI Highscore: {self.aiManager.getAIHighscore()}", True, (255, 255, 255))
+                if not self.isHuman:
+                    self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}, AI Highscore: {self.aiManager.getAIHighscore()}", True, (255, 255, 255))
+                else:
+                    self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}", True, (255, 255, 255))
                 self.highscore2Text = self.font.render(f"Total Highscore: {self.highscore}", True, (255, 255, 255))
                 self.screen.blit(self.highscoreText, (500, 20))
                 self.screen.blit(self.highscore2Text, (500, 45))
