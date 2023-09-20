@@ -30,7 +30,7 @@ class Game:
         self.bg = game.Background()
         self.ground = game.Ground()
         self.ySpace = a["ySpace"]
-        self.pipeManager = game.PipeManager(self.ySpace)
+        self.pipeManager = game.PipeManager(self.ySpace, True)
         self.points = game.Points()
         self.holdingJump = False
         self.shouldFlap = False
@@ -153,7 +153,7 @@ class Game:
                         self.bird = game.Bird(self.isHuman)
                     else:
                         self.aiManager = ai.instanceManager(100, True)
-                    self.pipeManager = game.PipeManager(self.ySpace)
+                    self.pipeManager = game.PipeManager(self.ySpace, True)
                     self.points = game.Points()
                     self.gaming = True
                     self.restarted = True

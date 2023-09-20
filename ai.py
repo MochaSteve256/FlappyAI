@@ -73,7 +73,7 @@ class ai:
         self.inputNeurons = inputs
         for i in range(len(self.hiddenNeurons)):
             # do de ai stuff
-            self.hiddenNeurons[i] = (
+            self.hiddenNeurons[i] = relu(
                 self.i2h_params[0][i] * self.inputNeurons[0] +#yDist topPipe
                 self.i2h_params[1][i] * self.inputNeurons[1] +#yDist bottomPipe
                 self.i2h_params[2][i] * self.inputNeurons[2] +#yVel Bird
@@ -81,7 +81,7 @@ class ai:
                 self.i2h_params[4][i] * self.inputNeurons[4]  #yPos Bird
             )
         for i in range(len(self.hiddenNeurons2)):
-            self.hiddenNeurons2[i] = (
+            self.hiddenNeurons2[i] = relu(
                 self.h2h_params[0][i] * self.hiddenNeurons[0] +
                 self.h2h_params[1][i] * self.hiddenNeurons[1] +
                 self.h2h_params[2][i] * self.hiddenNeurons[2] +
@@ -90,16 +90,16 @@ class ai:
                 self.h2h_params[5][i] * self.hiddenNeurons[5] +
                 self.h2h_params[6][i] * self.hiddenNeurons[6] +
                 self.h2h_params[7][i] * self.hiddenNeurons[7]
-            ) + 50
+            )
         self.outputNeurons[0] = sigmoid(
-            self.h2o_params[0][0] * self.hiddenNeurons[0] +
-            self.h2o_params[1][0] * self.hiddenNeurons[1] +
-            self.h2o_params[2][0] * self.hiddenNeurons[2] +
-            self.h2o_params[3][0] * self.hiddenNeurons[3] +
-            self.h2o_params[4][0] * self.hiddenNeurons[4] +
-            self.h2o_params[5][0] * self.hiddenNeurons[5] +
-            self.h2o_params[6][0] * self.hiddenNeurons[6] +
-            self.h2o_params[7][0] * self.hiddenNeurons[7]
+            self.h2o_params[0][0] * self.hiddenNeurons2[0] +
+            self.h2o_params[1][0] * self.hiddenNeurons2[1] +
+            self.h2o_params[2][0] * self.hiddenNeurons2[2] +
+            self.h2o_params[3][0] * self.hiddenNeurons2[3] +
+            self.h2o_params[4][0] * self.hiddenNeurons2[4] +
+            self.h2o_params[5][0] * self.hiddenNeurons2[5] +
+            self.h2o_params[6][0] * self.hiddenNeurons2[6] +
+            self.h2o_params[7][0] * self.hiddenNeurons2[7]
         )
 
         return self.outputNeurons[0]

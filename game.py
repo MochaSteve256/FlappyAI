@@ -84,9 +84,11 @@ class Pipe:
         screen.blit(self.image, (self.xPos, self.yPos))
 
 class PipeManager:
-    def __init__(self, ySpace):
+    def __init__(self, ySpace, hardcore):
         pipeHeight = random.randint(280, 510)
-        #pipeHeight = 350
+        if hardcore:
+            pipeHeight = 350
+        self.hardcore = hardcore
         self.pipes = []
         self.ySpace = ySpace
         self.pipes.append(Pipe(pipeHeight, True, ySpace))
@@ -101,10 +103,11 @@ class PipeManager:
                 self.placedPipe = True
                 self.alternate += 1
                 pipeHeight = random.randint(280, 510)
-                #if self.alternate % 2 == 0:
-                #    pipeHeight = 260
-                #else:
-                #    pipeHeight = 500
+                if self.hardcore:
+                    if self.alternate % 2 == 0:
+                        pipeHeight = 260
+                    else:
+                        pipeHeight = 500
                 self.pipes.append(Pipe(pipeHeight, True, self.ySpace))
                 self.pipes.append(Pipe(pipeHeight, False))
                 spawnedPipe = True
