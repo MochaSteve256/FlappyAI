@@ -86,18 +86,25 @@ class Pipe:
 class PipeManager:
     def __init__(self, ySpace):
         pipeHeight = random.randint(280, 510)
+        #pipeHeight = 350
         self.pipes = []
         self.ySpace = ySpace
         self.pipes.append(Pipe(pipeHeight, True, ySpace))
         self.pipes.append(Pipe(pipeHeight, False))
         self.placedPipe = False
+        self.alternate = 0
     
     def update(self):
         spawnedPipe = False
         if self.pipes[0].xPos < 120:
             if not self.placedPipe:
                 self.placedPipe = True
+                self.alternate += 1
                 pipeHeight = random.randint(280, 510)
+                #if self.alternate % 2 == 0:
+                #    pipeHeight = 260
+                #else:
+                #    pipeHeight = 500
                 self.pipes.append(Pipe(pipeHeight, True, self.ySpace))
                 self.pipes.append(Pipe(pipeHeight, False))
                 spawnedPipe = True

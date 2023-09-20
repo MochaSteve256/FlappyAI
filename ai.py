@@ -8,7 +8,7 @@ import json
 
 def mergeGenes(a, b):
     outcomes = [1, 2, 3]# 1 = gene a, 2 = gene b, 3 = mutation
-    probabilities = [.4, .4, .2]
+    probabilities = [2 / 5, 2 / 5, 1 / 5]
     result = []
     for i in range(len(a)):
         j = random.choices(outcomes, probabilities)[0]
@@ -17,11 +17,17 @@ def mergeGenes(a, b):
         elif j == 2:
             result.append(b[i])
         elif j == 3:
-            result.append(random.randint(-1000, 1000))#what?
+            if random.randint(0, 2) == 0:
+                result.append(random.randint(-1000, 1000))
+            else:
+                if random.randint(0, 1):
+                    result.append(a[i] + random.randint(-50, 50))
+                else:
+                    result.append(b[i] + random.randint(-50, 50))
     return result
 
 def convertGenes(gene):
-    i2h = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
+    i2h = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
     h2h = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
     h2o = [[0], [0], [0], [0], [0], [0], [0], [0]]
     geneIndex = 0
@@ -51,7 +57,7 @@ def sigmoid(x):
 #plan: 3/4 inputs (maybe rm xDist bc useless), 2 hidden layers 6 neurons each, 1 output for flapping
 class ai:
     def __init__(self, gene):
-        self.inputNeurons = [0, 0, 0, 0]
+        self.inputNeurons = [0, 0, 0, 0, 0]
         self.hiddenNeurons = [.0, .0, .0, .0, .0, .0, .0, .0]
         self.hiddenNeurons2 = [.0, .0, .0, .0, .0, .0, .0, .0]
         self.outputNeurons = [.0]
@@ -68,13 +74,14 @@ class ai:
         for i in range(len(self.hiddenNeurons)):
             # do de ai stuff
             self.hiddenNeurons[i] = (
-                self.i2h_params[0][i] * self.inputNeurons[0] +
-                self.i2h_params[1][i] * self.inputNeurons[1] +
-                self.i2h_params[2][i] * self.inputNeurons[2] #+
-                #self.i2h_params[3][i] * self.inputNeurons[3]
+                self.i2h_params[0][i] * self.inputNeurons[0] +#yDist topPipe
+                self.i2h_params[1][i] * self.inputNeurons[1] +#yDist bottomPipe
+                self.i2h_params[2][i] * self.inputNeurons[2] +#yVel Bird
+                self.i2h_params[3][i] * self.inputNeurons[3] +#xDist nextPipe
+                self.i2h_params[4][i] * self.inputNeurons[4]  #yPos Bird
             )
         for i in range(len(self.hiddenNeurons2)):
-            self.hiddenNeurons2[i] = relu(
+            self.hiddenNeurons2[i] = (
                 self.h2h_params[0][i] * self.hiddenNeurons[0] +
                 self.h2h_params[1][i] * self.hiddenNeurons[1] +
                 self.h2h_params[2][i] * self.hiddenNeurons[2] +
@@ -83,7 +90,7 @@ class ai:
                 self.h2h_params[5][i] * self.hiddenNeurons[5] +
                 self.h2h_params[6][i] * self.hiddenNeurons[6] +
                 self.h2h_params[7][i] * self.hiddenNeurons[7]
-            )
+            ) + 50
         self.outputNeurons[0] = sigmoid(
             self.h2o_params[0][0] * self.hiddenNeurons[0] +
             self.h2o_params[1][0] * self.hiddenNeurons[1] +
@@ -114,7 +121,7 @@ class instance:
         Returns:
             birdRect
         """
-        self.inputs = [input[0] - self.bird.yPos, input[1] - self.bird.yPos, input[2] - self.bird.xPos, self.bird.yVel]
+        self.inputs = [input[0] - self.bird.yPos, input[1] - self.bird.yPos, input[2] - self.bird.xPos, self.bird.yVel, self.bird.yPos]
         self.output = self.brain.calcOutput(self.inputs)
         if not self.holdingJump and self.output > .5:
             birdRect = self.bird.update(True)
@@ -149,7 +156,7 @@ class instanceManager:
             #initial gene population
             for i in range(self.instanceCount):
                 self.initialGenes.append([])
-                for j in range(104):
+                for j in range(5*8+8*8+8*1):
                     self.initialGenes[i].append(random.randint(-1000, 1000))
                 self.instances.append(instance(self.initialGenes[i]))
         else:
@@ -177,7 +184,7 @@ class instanceManager:
                     self.instances.pop(i)  # let bird be garbage-collected by python
                 else:
                     self.aiHighscore = json.load(open("ai.json", "r"))["aiHighscore"]
-                    if score >= sessionHighscore * 0.7:
+                    if score >= sessionHighscore:
                         #save premium dna
                         print("\033[92mTraining progressed, saving genes\033[0m")
                         bestInstances = {}
@@ -192,7 +199,7 @@ class instanceManager:
                         with open("ai.json", "w") as f:
                             json.dump(bestInstances, f, indent=4)
                     else:
-                        print("SessionHighscore not exceeded, saving shit.")
+                        print("SessionHighscore not exceeded, not saving that shit.")
                     return False
         return True
     def render(self, screen):
