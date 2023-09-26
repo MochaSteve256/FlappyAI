@@ -43,13 +43,14 @@ class Bird:
                 self.angle = -90
             self.afterFlapIter += 1
 
-        self.anim_delay += 1
+        if self.isHuman:
+            self.anim_delay += 1
 
-        if self.anim_delay > 15:
-            self.frame = (self.frame + 1) % len(self.images)
-            self.anim_delay = 0
-            
-        self.finalImage = pygame.transform.rotate(self.images[self.frame], self.angle).convert()
+            if self.anim_delay > 15:
+                self.frame = (self.frame + 1) % len(self.images)
+                self.anim_delay = 0
+                
+            self.finalImage = pygame.transform.rotate(self.images[self.frame], self.angle).convert()
         
         if self.yPos < -60:
             self.yPos = -60

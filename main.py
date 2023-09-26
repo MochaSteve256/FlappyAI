@@ -14,6 +14,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
         self.gaming = True
+        self.hardcore = False
         #load config file
         with open("options.json", "r") as f:
             a = json.load(f)
@@ -30,13 +31,16 @@ class Game:
         self.bg = game.Background()
         self.ground = game.Ground()
         self.ySpace = a["ySpace"]
-        self.pipeManager = game.PipeManager(self.ySpace, True)
+        self.pipeManager = game.PipeManager(self.ySpace, self.hardcore)
         self.points = game.Points()
         self.holdingJump = False
         self.shouldFlap = False
+        self.fitness = 0
+        self.aiFitness = 0
         if not self.isHuman:
             with open("ai.json", "r") as g:
                 b = json.load(g)
+                self.aiFitness = b["aiFitness"]
         self.highscore = a["highscore"]
         self.sessionHighscore = 0
         self.font = pygame.font.Font(None, 36)
@@ -53,6 +57,7 @@ class Game:
             self.hiSpeedButton = game.Button("HiSpeed: On", 680, 80)
             self.autoRestartButton = game.Button("AutoRestart: On", 735, 120)
         self.restarted = False
+        self.resetAI = game.Button("Reset AI", 845, 80)
 
     def run(self):
         #main game loop
@@ -68,9 +73,17 @@ class Game:
                         if self.isHuman:
                             self.modeButton.text = "Mode: AI"
                             self.isHuman = 0
+                            self.hiSpeed = True
+                            self.hiSpeedButton.text = "HiSpeed: On"
+                            self.autoRestart = 1
+                            self.autoRestartButton.text = "AutoRestart: On"
                         else:
                             self.modeButton.text = "Mode: Human"
                             self.isHuman = 1
+                            self.hiSpeed = False
+                            self.hiSpeedButton.text = "HiSpeed: Off"
+                            self.autoRestart = 0
+                            self.autoRestartButton.text = "AutoRestart: Off"
                         self.restarted = False
                         self.gaming = False
                     if self.trainModeButton.isHovered():
@@ -80,6 +93,8 @@ class Game:
                         else:
                             self.trainMode = True
                             self.trainModeButton.text = "Training Mode: On"
+                            self.trainModeButton.render(self.screen)
+                            pygame.display.flip()
                     if self.hiSpeedButton.isHovered():
                         if self.hiSpeed:
                             self.hiSpeed = False
@@ -94,6 +109,13 @@ class Game:
                         else:
                             self.autoRestart = True
                             self.autoRestartButton.text = "AutoRestart: On"
+                    if self.resetAI.isHovered():
+                        with open("ai.json", "r") as f:
+                            a = json.load(f)
+                        a["aiFitness"] = 0
+                        with open("ai.json", "w") as f:
+                            json.dump(a, f, indent=4)
+                        self.running = False
             
             keys = pygame.key.get_pressed()
             if keys[pygame.K_ESCAPE]:
@@ -132,9 +154,10 @@ class Game:
                         self.gaming = False
                 else:
                     if self.restarted:
-                        if not self.aiManager.update(pipeRects, self.sessionHighscore, self.points.points):
+                        if not self.aiManager.update(pipeRects, self.aiFitness, self.fitness):
                             self.gaming = False
                 self.points.update(pipeRects[1])
+                self.fitness += 1
             
             else:
                 keys = pygame.key.get_pressed()
@@ -152,16 +175,19 @@ class Game:
                     if self.isHuman:
                         self.bird = game.Bird(self.isHuman)
                     else:
-                        self.aiManager = ai.instanceManager(100, True)
-                    self.pipeManager = game.PipeManager(self.ySpace, True)
+                        self.aiManager = ai.instanceManager(200, True)
+                    self.pipeManager = game.PipeManager(self.ySpace, self.hardcore)
                     self.points = game.Points()
                     self.gaming = True
                     self.restarted = True
+                    self.fitness = 0
             
             if self.highscore < self.points.points:
                 self.highscore = self.points.points
             if self.sessionHighscore < self.points.points:
                 self.sessionHighscore = self.points.points
+            if self.fitness > self.aiFitness:
+                self.aiFitness = self.fitness
             
             #clear screen and render stuff
             pygame.draw.rect(self.screen, (92, 210, 255), (0, 0, 480, 640), 0)
@@ -189,15 +215,25 @@ class Game:
             pygame.draw.rect(self.screen, (0, 0, 0), (480, 0, 480, 640), 0)
             if not self.trainMode:
                 if not self.isHuman:
-                    self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}, AI Highscore: {self.aiManager.getAIHighscore()}", True, (255, 255, 255))
+                    try:
+                        self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}, AI fitness: {self.aiManager.getAIHighscore()}", True, (255, 255, 255))
+                        self.alive = self.font.render(f"Alive: {len(self.aiManager.instances)}, 1 Score = 360 Fitness", True, (255, 255, 255))
+                        self.screen.blit(self.alive, (500, 157))
+                    except:
+                        pass
                 else:
                     self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}", True, (255, 255, 255))
                 self.highscore2Text = self.font.render(f"Total Highscore: {self.highscore}", True, (255, 255, 255))
-                self.screen.blit(self.highscoreText, (500, 20))
                 self.screen.blit(self.highscore2Text, (500, 45))
+                try:
+                    self.screen.blit(self.highscoreText, (500, 20))
+                    
+                except:
+                    pass
                 self.modeButton.render(self.screen)
                 self.hiSpeedButton.render(self.screen)
                 self.autoRestartButton.render(self.screen)
+                self.resetAI.render(self.screen)
             self.trainModeButton.render(self.screen)
             if not self.trainMode:
                 pygame.display.flip()

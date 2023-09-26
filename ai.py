@@ -46,7 +46,9 @@ def convertGenes(gene):
     return (i2h, h2h, h2o)
 
 def relu(x):
-    #print(x)
+    return max(0, x)
+
+def tanh(x):
     return math.tanh(x)
 
 def sigmoid(x):
@@ -76,30 +78,30 @@ class ai:
             self.hiddenNeurons[i] = relu(
                 self.i2h_params[0][i] * self.inputNeurons[0] +#yDist topPipe
                 self.i2h_params[1][i] * self.inputNeurons[1] +#yDist bottomPipe
-                self.i2h_params[2][i] * self.inputNeurons[2] +#yVel Bird
-                self.i2h_params[3][i] * self.inputNeurons[3] +#xDist nextPipe
+                #self.i2h_params[2][i] * self.inputNeurons[2] +#yVel Bird
+                #self.i2h_params[3][i] * self.inputNeurons[3] +#xDist nextPipe
                 self.i2h_params[4][i] * self.inputNeurons[4]  #yPos Bird
             )
-        for i in range(len(self.hiddenNeurons2)):
-            self.hiddenNeurons2[i] = relu(
-                self.h2h_params[0][i] * self.hiddenNeurons[0] +
-                self.h2h_params[1][i] * self.hiddenNeurons[1] +
-                self.h2h_params[2][i] * self.hiddenNeurons[2] +
-                self.h2h_params[3][i] * self.hiddenNeurons[3] +
-                self.h2h_params[4][i] * self.hiddenNeurons[4] +
-                self.h2h_params[5][i] * self.hiddenNeurons[5] +
-                self.h2h_params[6][i] * self.hiddenNeurons[6] +
-                self.h2h_params[7][i] * self.hiddenNeurons[7]
-            )
-        self.outputNeurons[0] = sigmoid(
-            self.h2o_params[0][0] * self.hiddenNeurons2[0] +
-            self.h2o_params[1][0] * self.hiddenNeurons2[1] +
-            self.h2o_params[2][0] * self.hiddenNeurons2[2] +
-            self.h2o_params[3][0] * self.hiddenNeurons2[3] +
-            self.h2o_params[4][0] * self.hiddenNeurons2[4] +
-            self.h2o_params[5][0] * self.hiddenNeurons2[5] +
-            self.h2o_params[6][0] * self.hiddenNeurons2[6] +
-            self.h2o_params[7][0] * self.hiddenNeurons2[7]
+        #for i in range(len(self.hiddenNeurons2)):
+        #    self.hiddenNeurons2[i] = relu(
+        #        self.h2h_params[0][i] * self.hiddenNeurons[0] +
+        #        self.h2h_params[1][i] * self.hiddenNeurons[1] +
+        #        self.h2h_params[2][i] * self.hiddenNeurons[2] +
+        #        self.h2h_params[3][i] * self.hiddenNeurons[3] +
+        #        self.h2h_params[4][i] * self.hiddenNeurons[4] +
+        #        self.h2h_params[5][i] * self.hiddenNeurons[5] +
+        #        self.h2h_params[6][i] * self.hiddenNeurons[6] +
+        #        self.h2h_params[7][i] * self.hiddenNeurons[7]
+        #    )
+        self.outputNeurons[0] = tanh(
+            self.h2o_params[0][0] * self.hiddenNeurons[0] +
+            self.h2o_params[1][0] * self.hiddenNeurons[1] +
+            self.h2o_params[2][0] * self.hiddenNeurons[2] +
+            self.h2o_params[3][0] * self.hiddenNeurons[3] +
+            self.h2o_params[4][0] * self.hiddenNeurons[4] +
+            self.h2o_params[5][0] * self.hiddenNeurons[5] +
+            self.h2o_params[6][0] * self.hiddenNeurons[6] +
+            self.h2o_params[7][0] * self.hiddenNeurons[7]
         )
 
         return self.outputNeurons[0]
@@ -151,7 +153,7 @@ class instanceManager:
         self.topPipeYpos = 0
         self.bottomPipeYpos = 0
         self.nextPipesXdist = 0
-        self.aiHighscore = json.load(open("ai.json", "r"))["aiHighscore"]
+        self.aiHighscore = json.load(open("ai.json", "r"))["aiFitness"]
         if not loadGenesFromFile:
             #initial gene population
             for i in range(self.instanceCount):
@@ -183,15 +185,17 @@ class instanceManager:
                 if len(self.instances) > 2:
                     self.instances.pop(i)  # let bird be garbage-collected by python
                 else:
-                    self.aiHighscore = json.load(open("ai.json", "r"))["aiHighscore"]
+                    self.aiHighscore = json.load(open("ai.json", "r"))["aiFitness"]
+                    print(str(score) + " " + str(sessionHighscore) + " " + str(self.aiHighscore))
                     if score >= sessionHighscore:
+                    #if 1:
                         #save premium dna
                         print("\033[92mTraining progressed, saving genes\033[0m")
                         bestInstances = {}
                         try:
                             bestInstances["bestInstanceA"] = self.instances[0].gene
                             bestInstances["bestInstanceB"] = self.instances[1].gene
-                            bestInstances["aiHighscore"] = score
+                            bestInstances["aiFitness"] = score
                         except Exception as e:
                             print("Too few instances, using first instance if even existing, or randomized genes")
                         if len(bestInstances) == 0:
@@ -199,7 +203,7 @@ class instanceManager:
                         with open("ai.json", "w") as f:
                             json.dump(bestInstances, f, indent=4)
                     else:
-                        print("SessionHighscore not exceeded, not saving that shit.")
+                        print("AI Highscore not exceeded, not saving that shit.")
                     return False
         return True
     def render(self, screen):
