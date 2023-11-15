@@ -7,7 +7,7 @@ class Bird:
         self.xPos = 120
         self.yPos = 300
         self.yVel = 0
-        self.gravity = 0.06
+        self.gravity = 2.5
         self.angle = 0
         self.isHuman = isHuman
         self.frame = 0
@@ -29,15 +29,15 @@ class Bird:
 
     def update(self, flap):
         if flap:
-            self.yVel = -3.5
+            self.yVel = -20
             self.angle = 30
             self.anim_delay = 0
             self.afterFlapIter = 0
         else:
             self.yVel += self.gravity
-            if self.yVel > 5:
-                self.yVel = 5
-            if self.afterFlapIter > 50:
+            if self.yVel > 30:
+                self.yVel = 30
+            if self.afterFlapIter > 15:
                 self.angle -= 1
             if self.angle < -90:
                 self.angle = -90
@@ -45,7 +45,7 @@ class Bird:
 
         self.anim_delay += 1
 
-        if self.anim_delay > 15:
+        if self.anim_delay > 45:
             self.frame = (self.frame + 1) % len(self.images)
             self.anim_delay = 0
             
@@ -114,7 +114,7 @@ class PipeManager:
 
         pipeReturns = []
         for pipe in self.pipes:
-            pipeReturns.append(pipe.update(1, 0))
+            pipeReturns.append(pipe.update(10, 0))
         
         if self.pipes[0].xPos < -104:
             self.pipes.pop(0)

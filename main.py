@@ -115,8 +115,8 @@ class Game:
                 except:
                     pass
                 
-                self.ground.update(1.2)
-                self.bg.update(.5)
+                self.ground.update(12)
+                self.bg.update(5)
                 colliding = False
                 pipeRects = self.pipeManager.update()
                 if self.isHuman:
@@ -202,7 +202,7 @@ class Game:
             if not self.trainMode:
                 pygame.display.flip()
             if not self.hiSpeed:
-                self.clock.tick(200)
+                self.clock.tick(30)
         self.save(self.highscore, self.isHuman)
         pygame.quit()
     
