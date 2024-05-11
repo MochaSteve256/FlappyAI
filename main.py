@@ -6,7 +6,7 @@ import json
 
 #main game class
 class Game:
-    def __init__(self):
+    def __init__(self, easy = False):
         #initialize pygame
         pygame.init()
         self.screen = pygame.display.set_mode((960, 640), pygame.DOUBLEBUF)
@@ -30,7 +30,8 @@ class Game:
         self.bg = game.Background()
         self.ground = game.Ground()
         self.ySpace = a["ySpace"]
-        self.pipeManager = game.PipeManager(self.ySpace, True)
+        self.pipeManager = game.PipeManager(self.ySpace, easy)
+        self.easy = easy
         self.points = game.Points()
         self.holdingJump = False
         self.shouldFlap = False
@@ -153,7 +154,7 @@ class Game:
                         self.bird = game.Bird(self.isHuman)
                     else:
                         self.aiManager = ai.instanceManager(100, True)
-                    self.pipeManager = game.PipeManager(self.ySpace, True)
+                    self.pipeManager = game.PipeManager(self.ySpace, self.easy)
                     self.points = game.Points()
                     self.gaming = True
                     self.restarted = True
@@ -189,7 +190,11 @@ class Game:
             pygame.draw.rect(self.screen, (0, 0, 0), (480, 0, 480, 640), 0)
             if not self.trainMode:
                 if not self.isHuman:
-                    self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}, AI Highscore: {self.aiManager.getAIHighscore()}", True, (255, 255, 255))
+                    try:
+                        aih = self.aiManager.getAIHighscore()
+                    except:
+                        aih = 0
+                    self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}, AI Highscore: { aih }", True, (255, 255, 255))
                 else:
                     self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}", True, (255, 255, 255))
                 self.highscore2Text = self.font.render(f"Total Highscore: {self.highscore}", True, (255, 255, 255))

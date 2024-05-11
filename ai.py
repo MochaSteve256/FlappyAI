@@ -199,7 +199,7 @@ class instanceManager:
                         with open("ai.json", "w") as f:
                             json.dump(bestInstances, f, indent=4)
                     else:
-                        print("SessionHighscore not exceeded, not saving that shit.")
+                        print("SessionHighscore not exceeded, not saving genes.")
                     return False
         return True
     def render(self, screen):
