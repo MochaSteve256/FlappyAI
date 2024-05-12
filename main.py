@@ -1,4 +1,4 @@
-import ai
+import new_ai as ai
 import game
 
 import pygame
@@ -24,7 +24,7 @@ class Game:
             self.hiSpeed = False
             self.autoRestart = False
         else:
-            self.aiManager = ai.instanceManager(1000, True)
+            self.aiManager = ai.InstanceManager()
             self.hiSpeed = True
             self.autoRestart = True
         self.bg = game.Background()
@@ -35,9 +35,6 @@ class Game:
         self.points = game.Points()
         self.holdingJump = False
         self.shouldFlap = False
-        if not self.isHuman:
-            with open("ai.json", "r") as g:
-                b = json.load(g)
         self.highscore = a["highscore"]
         self.sessionHighscore = 0
         self.font = pygame.font.Font(None, 36)
@@ -133,7 +130,7 @@ class Game:
                         self.gaming = False
                 else:
                     if self.restarted:
-                        if not self.aiManager.update(pipeRects, self.sessionHighscore, self.points.points):
+                        if not self.aiManager.update(pipeRects, self.points.points):
                             self.gaming = False
                 self.points.update(pipeRects[1])
             
@@ -153,7 +150,7 @@ class Game:
                     if self.isHuman:
                         self.bird = game.Bird(self.isHuman)
                     else:
-                        self.aiManager = ai.instanceManager(100, True)
+                        self.aiManager = ai.InstanceManager()
                     self.pipeManager = game.PipeManager(self.ySpace, self.easy)
                     self.points = game.Points()
                     self.gaming = True
@@ -191,7 +188,7 @@ class Game:
             if not self.trainMode:
                 if not self.isHuman:
                     try:
-                        aih = self.aiManager.getAIHighscore()
+                        aih = self.aiManager.get_ai_highscore()
                     except:
                         aih = 0
                     self.highscoreText = self.font.render(f"Highscore: {self.sessionHighscore}, AI Highscore: { aih }", True, (255, 255, 255))

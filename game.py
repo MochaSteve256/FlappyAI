@@ -13,7 +13,9 @@ class Bird:
         self.frame = 0
         self.anim_delay = 0
         self.afterFlapIter = 0
+        self.holdingJump = False
         self.load_bird_images()
+        self.dead = False
 
     def load_bird_images(self):
         bird_colors = ["yellow" if self.isHuman else "blue"]
@@ -29,11 +31,14 @@ class Bird:
 
     def update(self, flap):
         if flap:
-            self.yVel = -20
-            self.angle = 30
-            self.anim_delay = 0
-            self.afterFlapIter = 0
+            if not self.holdingJump:
+                self.yVel = -20
+                self.angle = 30
+                self.anim_delay = 0
+                self.afterFlapIter = 0
+            self.holdingJump = True
         else:
+            self.holdingJump = False
             self.yVel += self.gravity
             if self.yVel > 30:
                 self.yVel = 30
@@ -61,7 +66,8 @@ class Bird:
         return pygame.Rect(self.xPos + 8, self.yPos + 8, 52, 36)
 
     def render(self, screen):
-        screen.blit(self.finalImage, self.rotatedRect)
+        if not self.dead:
+            screen.blit(self.finalImage, self.rotatedRect)
 
 
 class Pipe:

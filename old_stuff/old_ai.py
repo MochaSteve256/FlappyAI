@@ -8,7 +8,7 @@ import json
 
 def mergeGenes(a, b):
     outcomes = [1, 2, 3]# 1 = gene a, 2 = gene b, 3 = mutation
-    probabilities = [2 / 5, 2 / 5, 1 / 5]
+    probabilities = [1 / 3, 1 / 3, 1 / 3]
     result = []
     for i in range(len(a)):
         j = random.choices(outcomes, probabilities)[0]
@@ -206,5 +206,5 @@ class instanceManager:
         for instance in self.instances:
             instance.render(screen)
         
-    def getAIHighscore(self):
+    def get_ai_highscore(self):
         return self.aiHighscore
